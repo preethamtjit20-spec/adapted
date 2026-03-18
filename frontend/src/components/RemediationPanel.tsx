@@ -134,7 +134,7 @@ export default function RemediationPanel({ videoId, onRemediationComplete }: Rem
         const res = await fetch(`/api/remediate/${videoId}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ actions }),
+          body: JSON.stringify({ video_id: videoId, actions }),
         });
         const data = await res.json();
         setTimeout(() => {
