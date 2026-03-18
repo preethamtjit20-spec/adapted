@@ -1,0 +1,227 @@
+1
+00:00:00,000 --> 00:00:03,600
+Let's look at how you add waves.
+
+2
+00:00:03,600 --> 00:00:06,600
+Adding waves is called superposition.
+
+3
+00:00:06,600 --> 00:00:11,099
+Now if I had two crests hitting towards each other in a spring,
+
+4
+00:00:11,099 --> 00:00:19,100
+then when the two crests meet, they create a wave or something for a fraction of a second as they're passing through each other.
+
+5
+00:00:19,100 --> 00:00:22,199
+And they would create something that's bigger than both of them.
+
+6
+00:00:22,199 --> 00:00:26,600
+If this crest was five centimeters and this crest was four centimeters,
+
+7
+00:00:26,700 --> 00:00:31,000
+then when they meet, they would create a crest with an amplitude of nine centimeters.
+
+8
+00:00:31,000 --> 00:00:36,500
+We call this a super crest.
+
+9
+00:00:36,500 --> 00:00:42,500
+Very similarly, when two troughs meet, if this one was four centimeters and this one was five centimeters,
+
+10
+00:00:42,500 --> 00:00:47,000
+below the axis, then that would add up to nine centimeters below the axis.
+
+11
+00:00:47,000 --> 00:00:54,299
+So I'm going to give what I call a super trough.
+
+12
+00:00:54,399 --> 00:00:58,000
+The amazing thing about waves is when the two waves pass through each other,
+
+13
+00:00:58,000 --> 00:01:03,199
+they may create some new shape, but they actually pass right through each other unaffected.
+
+14
+00:01:03,199 --> 00:01:08,700
+And the way you could tell that is, if I'm standing there talking to someone and they're talking to me and we're speaking at the same time,
+
+15
+00:01:08,700 --> 00:01:11,900
+their sound wave travels through my sound wave.
+
+16
+00:01:11,900 --> 00:01:15,700
+And when their sound wave gets to me, it sounds like them and I can hear what they're saying.
+
+17
+00:01:15,700 --> 00:01:21,200
+And my sound wave travels through their sound wave and when it gets to them, they can understand what I'm saying.
+
+18
+00:01:21,299 --> 00:01:27,299
+If the two waves mix and then create a new wave that change the properties of each individual wave,
+
+19
+00:01:27,299 --> 00:01:31,100
+then when two people are talking to each other, it would get all garbled up.
+
+20
+00:01:31,100 --> 00:01:33,299
+Also, radio waves do the same thing.
+
+21
+00:01:33,299 --> 00:01:37,800
+Two radio waves can be passing by in here and I can tune in one radio wave or the other,
+
+22
+00:01:37,800 --> 00:01:40,000
+even though they're passing through each other.
+
+23
+00:01:40,000 --> 00:01:42,100
+When it comes to waves and adding them,
+
+24
+00:01:42,100 --> 00:01:46,900
+sometimes we get waves like this, like the square wave and the sort of triangular looking wave.
+
+25
+00:01:47,000 --> 00:01:48,500
+We want to add those two up.
+
+26
+00:01:48,500 --> 00:01:54,300
+We use the same idea of adding the amplitudes to find out what's going to happen.
+
+27
+00:01:54,300 --> 00:01:59,900
+So I can make a quick sketch and say there's the square wave and there's the triangular wave.
+
+28
+00:01:59,900 --> 00:02:01,300
+Let's see what happens.
+
+29
+00:02:01,300 --> 00:02:02,600
+So look at the beginning.
+
+30
+00:02:02,600 --> 00:02:04,700
+The square wave is five centimeters tall.
+
+31
+00:02:04,700 --> 00:02:06,300
+The triangular wave is zero.
+
+32
+00:02:06,300 --> 00:02:08,400
+So my first point would be five.
+
+33
+00:02:08,400 --> 00:02:09,599
+Then I go over here.
+
+34
+00:02:09,599 --> 00:02:12,700
+I might have the rectangular wave.
+
+35
+00:02:12,700 --> 00:02:15,400
+The square wave is five and the triangle is one.
+
+36
+00:02:15,400 --> 00:02:16,599
+So that's six.
+
+37
+00:02:16,599 --> 00:02:21,200
+If I work my way along the whole thing doing that, I'll end up with a wave like this.
+
+38
+00:02:21,200 --> 00:02:25,200
+So when these two waves meet, I might get a shape that looks like that.
+
+39
+00:02:25,200 --> 00:02:29,000
+It can be a lot more complicated when you have waves like this.
+
+40
+00:02:29,000 --> 00:02:33,800
+In order to find out what the result is when this wave and this wave are meeting each other,
+
+41
+00:02:33,800 --> 00:02:35,000
+I have to do the same thing.
+
+42
+00:02:35,000 --> 00:02:38,700
+I add up the amplitudes, but here it's so much busier.
+
+43
+00:02:38,700 --> 00:02:40,500
+I have to do one piece at a time.
+
+44
+00:02:40,500 --> 00:02:43,400
+I have to start over here and say zero plus zero is zero.
+
+45
+00:02:43,500 --> 00:02:45,300
+This wave is three high.
+
+46
+00:02:45,300 --> 00:02:47,000
+This wave is one below.
+
+47
+00:02:47,000 --> 00:02:48,700
+So three up, one down is two.
+
+48
+00:02:48,700 --> 00:02:50,500
+So I put a dot at two.
+
+49
+00:02:50,500 --> 00:02:53,500
+And you literally have to work your way all the way through this.
+
+50
+00:02:53,500 --> 00:02:58,000
+Going one on one space at a time and figuring out what it's going to be.
+
+51
+00:02:58,000 --> 00:03:02,300
+In the end, you'll end up with some weird wave that might look a little odd,
+
+52
+00:03:02,300 --> 00:03:04,500
+but that's what's going to happen.
+
+53
+00:03:04,500 --> 00:03:07,200
+That looks a little bit like what you see in a sound wave.
+
+54
+00:03:07,200 --> 00:03:11,300
+When you look on a oscilloscope, you see this very complex looking wave.
+
+55
+00:03:11,300 --> 00:03:16,600
+That complex looking wave is actually made up of all the simple waves put together.
+
+56
+00:03:16,600 --> 00:03:22,200
+And computers are really good at taking this complex wave and distilling it down to the simple waves.
+
+57
+00:03:22,200 --> 00:03:25,700
+We can find out what waves went into making that up.

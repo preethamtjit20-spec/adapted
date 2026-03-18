@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.env
+__pycache__/
+*.pyc
+storage/uploads/*
+storage/output/*
+!storage/uploads/.gitkeep
+!storage/output/.gitkeep
+.venv/
+venv/
+*.egg-info/
+.DS_Store
+*.mp4
+*.pdf
+backend/storage/output/*
