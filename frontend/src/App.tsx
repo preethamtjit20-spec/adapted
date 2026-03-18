@@ -211,6 +211,7 @@ function App() {
                 <div className="lg:col-span-7">
                   <RemediationPanel
                     videoId={videoId}
+                    currentScore={score}
                     onRemediationComplete={handleRemediationComplete}
                   />
                 </div>

@@ -14,6 +14,7 @@ import {
 
 interface RemediationPanelProps {
   videoId: string;
+  currentScore: number;
   onRemediationComplete: (data: { score_after: number; actions_applied: string[] }) => void;
 }
 
@@ -68,16 +69,18 @@ const colorClasses: Record<string, { bg: string; ring: string; text: string }> =
   yellow: { bg: 'bg-yellow-500/10', ring: 'ring-yellow-500/30', text: 'text-yellow-400' },
 };
 
-export default function RemediationPanel({ videoId, onRemediationComplete }: RemediationPanelProps) {
+export default function RemediationPanel({ videoId, currentScore, onRemediationComplete }: RemediationPanelProps) {
   const [selected, setSelected] = useState<Set<string>>(new Set(remediationActions.map((a) => a.id)));
   const [processing, setProcessing] = useState(false);
   const [currentAction, setCurrentAction] = useState('');
   const [completedActions, setCompletedActions] = useState<Set<string>>(new Set());
   const [progress, setProgress] = useState(0);
 
-  const totalPoints = remediationActions
+  const rawPoints = remediationActions
     .filter((a) => selected.has(a.id))
     .reduce((sum, a) => sum + a.points, 0);
+  const maxGain = 100 - currentScore;
+  const totalPoints = Math.min(rawPoints, maxGain);
 
   const toggleAction = (id: string) => {
     if (processing) return;
