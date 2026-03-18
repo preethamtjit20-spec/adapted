@@ -55,22 +55,62 @@ class VideoEnhancer:
             })
         return entries
 
+    async def _has_subtitles_filter(self) -> bool:
+        """Check if FFmpeg has the subtitles filter (requires libass)."""
+        try:
+            proc = await asyncio.create_subprocess_exec(
+                self.ffmpeg, "-filters",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+            stdout, _ = await proc.communicate()
+            return b"subtitles" in stdout
+        except Exception:
+            return False
+
     async def burn_captions(
         self, video_path: str, srt_path: str, output_path: str
     ) -> str:
-        """Burn captions directly onto video frames using OpenCV + Pillow.
-
-        Works without libass/freetype — renders text onto each frame in Python,
-        then re-encodes with FFmpeg.
+        """Burn captions onto video. Uses FFmpeg subtitles filter if available (fast),
+        otherwise falls back to frame-by-frame Python rendering (slow but universal).
         """
-        import cv2
-        import numpy as np
-        from PIL import Image, ImageDraw, ImageFont
+        if await self._has_subtitles_filter():
+            logger.info("Using FFmpeg native subtitles filter (fast path)")
+            return await self._burn_captions_ffmpeg(video_path, srt_path, output_path)
 
+        logger.info("FFmpeg lacks subtitles filter, using Pillow fallback (slow path)")
         loop = asyncio.get_event_loop()
         await loop.run_in_executor(
             None, self._burn_captions_sync, video_path, srt_path, output_path
         )
+        return output_path
+
+    async def _burn_captions_ffmpeg(
+        self, video_path: str, srt_path: str, output_path: str
+    ) -> str:
+        """Fast caption burning using FFmpeg's native subtitles filter (requires libass)."""
+        # Escape path for FFmpeg filter: colons and backslashes need escaping
+        srt_escaped = str(srt_path).replace("\\", "\\\\").replace(":", "\\:")
+
+        style = (
+            "FontName=Arial,FontSize=24,PrimaryColour=&H00FFFFFF,"
+            "OutlineColour=&H00000000,BackColour=&H80000000,"
+            "BorderStyle=4,Outline=1,Shadow=0,MarginV=30"
+        )
+
+        vf = f"subtitles='{srt_escaped}':force_style='{style}'"
+
+        cmd = [
+            self.ffmpeg, "-y",
+            "-i", str(video_path),
+            "-vf", vf,
+            "-c:a", "copy",
+            "-c:v", "libx264",
+            "-preset", "fast",
+            "-crf", "23",
+            str(output_path),
+        ]
+        await self._run(cmd)
         return output_path
 
     def _burn_captions_sync(
