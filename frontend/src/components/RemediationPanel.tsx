@@ -109,37 +109,57 @@ export default function RemediationPanel({ videoId, currentScore, onRemediationC
     setProgress(0);
     setCompletedActions(new Set());
 
-    // Simulate step-by-step processing with visual feedback
-    const processAction = async (action: string, index: number) => {
-      setCurrentAction(action);
-      setProgress(((index) / actions.length) * 100);
-      await new Promise((r) => setTimeout(r, 1500 + Math.random() * 1000));
-      setCompletedActions((prev) => new Set([...prev, action]));
-    };
-
     try {
-      // First transcribe
-      try {
-        await fetch(`/api/transcribe/${videoId}`, { method: 'POST' });
-      } catch {
-        // continue
+      // Step 1: Transcribe (Whisper STT) — the slow part
+      const needsCaptions = actions.includes('add_captions');
+      if (needsCaptions) {
+        setCurrentAction('add_captions');
+        setProgress(10);
+
+        // Start a slow progress ticker while Whisper runs
+        let tick = 10;
+        const ticker = setInterval(() => {
+          tick = Math.min(tick + 2, 45);
+          setProgress(tick);
+        }, 2000);
+
+        try {
+          await fetch(`/api/transcribe/${videoId}`, { method: 'POST' });
+        } catch {
+          // continue even if transcription fails
+        }
+        clearInterval(ticker);
+        setCompletedActions((prev) => new Set([...prev, 'add_captions']));
+        setProgress(50);
       }
 
-      // Process each action visually
-      for (let i = 0; i < actions.length; i++) {
-        await processAction(actions[i], i);
+      // Step 2: Mark other actions as "processing"
+      const otherActions = actions.filter(a => a !== 'add_captions');
+      for (const action of otherActions) {
+        setCurrentAction(action);
+        await new Promise((r) => setTimeout(r, 300));
+        setCompletedActions((prev) => new Set([...prev, action]));
       }
+      setProgress(60);
 
-      setProgress(100);
+      // Step 3: Apply remediation (FFmpeg processing)
+      setCurrentAction('applying');
 
-      // Call remediate API
+      let tick2 = 60;
+      const ticker2 = setInterval(() => {
+        tick2 = Math.min(tick2 + 3, 95);
+        setProgress(tick2);
+      }, 1500);
+
       try {
         const res = await fetch(`/api/remediate/${videoId}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ video_id: videoId, actions }),
         });
+        clearInterval(ticker2);
         const data = await res.json();
+        setProgress(100);
         setTimeout(() => {
           onRemediationComplete({
             score_after: data.score_after,
@@ -147,10 +167,12 @@ export default function RemediationPanel({ videoId, currentScore, onRemediationC
           });
         }, 500);
       } catch {
+        clearInterval(ticker2);
         // Demo fallback
+        setProgress(100);
         setTimeout(() => {
           onRemediationComplete({
-            score_after: 34 + totalPoints,
+            score_after: Math.min(currentScore + totalPoints, 100),
             actions_applied: actions,
           });
         }, 500);
