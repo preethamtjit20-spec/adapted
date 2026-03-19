@@ -71,14 +71,10 @@ class VideoEnhancer:
     async def burn_captions(
         self, video_path: str, srt_path: str, output_path: str
     ) -> str:
-        """Burn captions onto video. Uses FFmpeg subtitles filter if available (fast),
-        otherwise falls back to frame-by-frame Python rendering (slow but universal).
+        """Burn captions + Braille side panel onto video using Pillow.
+        Always uses the Braille path for the full demo experience.
         """
-        if await self._has_subtitles_filter():
-            logger.info("Using FFmpeg native subtitles filter (fast path)")
-            return await self._burn_captions_ffmpeg(video_path, srt_path, output_path)
-
-        logger.info("FFmpeg lacks subtitles filter, using Pillow fallback (slow path)")
+        logger.info("Using Pillow caption+braille renderer")
         loop = asyncio.get_event_loop()
         await loop.run_in_executor(
             None, self._burn_captions_sync, video_path, srt_path, output_path
@@ -136,8 +132,6 @@ class VideoEnhancer:
         canvas_h = vid_h
 
         tmpdir = tempfile.mkdtemp(prefix="adapted_caps_")
-        frames_dir = Path(tmpdir) / "frames"
-        frames_dir.mkdir()
 
         # Fonts
         caption_font_size = max(18, vid_h // 28)
@@ -147,9 +141,15 @@ class VideoEnhancer:
 
         def _load_font(size, preferred=None):
             paths = [
+                # macOS
                 "/System/Library/Fonts/Helvetica.ttc",
                 "/System/Library/Fonts/SFNSMono.ttf",
                 "/System/Library/Fonts/Supplemental/Arial.ttf",
+                # Linux (Ubuntu/Debian)
+                "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+                "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+                "/usr/share/fonts/truetype/freefont/FreeSans.ttf",
+                "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf",
             ]
             if preferred:
                 paths.insert(0, preferred)
@@ -185,6 +185,11 @@ class VideoEnhancer:
         for sub in subs:
             if sub["text"] not in braille_cache:
                 braille_cache[sub["text"]] = translate_to_braille(sub["text"])
+
+        # Use OpenCV VideoWriter instead of PNG-to-disk (much faster)
+        tmp_video = str(Path(tmpdir) / "captioned_noaudio.mp4")
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        writer = cv2.VideoWriter(tmp_video, fourcc, fps, (canvas_w, canvas_h))
 
         frame_idx = 0
         while True:
@@ -341,49 +346,42 @@ class VideoEnhancer:
             canvas.paste(pil_video, (0, 0))
             canvas.paste(panel, (vid_w, 0))
 
-            # Write frame
+            # Write frame directly to VideoWriter (no disk I/O per frame)
             out_frame = cv2.cvtColor(np.array(canvas), cv2.COLOR_RGB2BGR)
-            cv2.imwrite(str(frames_dir / f"{frame_idx:06d}.png"), out_frame)
+            writer.write(out_frame)
             frame_idx += 1
 
-        cap.release()
-        logger.info("Wrote %d captioned+braille frames, encoding video...", frame_idx)
+            if frame_idx % 500 == 0:
+                logger.info("  Processed %d / %d frames", frame_idx, total_frames)
 
-        # Encode frames to video
+        cap.release()
+        writer.release()
+        logger.info("Wrote %d captioned+braille frames, muxing audio...", frame_idx)
+
+        # Re-encode with libx264 and mux original audio
         import subprocess
 
-        tmp_video = str(Path(tmpdir) / "captioned_noaudio.mp4")
-        subprocess.run(
-            [
-                self.ffmpeg, "-y",
-                "-framerate", str(fps),
-                "-i", str(frames_dir / "%06d.png"),
-                "-c:v", "libx264",
-                "-preset", "fast",
-                "-crf", "23",
-                "-pix_fmt", "yuv420p",
-                tmp_video,
-            ],
-            check=True,
-            capture_output=True,
-        )
-
-        # Mux original audio back in
+        final_tmp = str(Path(tmpdir) / "final.mp4")
         subprocess.run(
             [
                 self.ffmpeg, "-y",
                 "-i", tmp_video,
                 "-i", video_path,
-                "-c:v", "copy",
+                "-c:v", "libx264",
+                "-preset", "fast",
+                "-crf", "23",
+                "-pix_fmt", "yuv420p",
                 "-c:a", "aac",
                 "-map", "0:v:0",
                 "-map", "1:a:0",
                 "-shortest",
-                output_path,
+                final_tmp,
             ],
             check=True,
             capture_output=True,
         )
+
+        shutil.copy2(final_tmp, output_path)
 
         # Cleanup
         shutil.rmtree(tmpdir, ignore_errors=True)
