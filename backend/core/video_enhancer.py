@@ -135,7 +135,7 @@ class VideoEnhancer:
 
         # Fonts
         caption_font_size = max(18, vid_h // 28)
-        braille_font_size = max(28, vid_h // 16)
+        braille_font_size = max(16, vid_h // 36)
         label_font_size = max(14, vid_h // 40)
         text_font_size = max(12, vid_h // 45)
 
