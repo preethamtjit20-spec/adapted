@@ -262,7 +262,7 @@ export default function RemediationPanel({ videoId, currentScore, onRemediationC
                 <p className="text-xs text-slate-400">{action.description}</p>
               </div>
 
-              {/* Points badge */}
+              {/* Points badge — scale to cap */}
               <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-mono font-medium ${
                 isCompleted
                   ? 'bg-green-500/10 text-green-400'
@@ -270,7 +270,7 @@ export default function RemediationPanel({ videoId, currentScore, onRemediationC
                   ? `${colors.bg} ${colors.text}`
                   : 'text-slate-400'
               }`}>
-                +{action.points}
+                +{rawPoints > 0 && isSelected ? Math.round((action.points / rawPoints) * totalPoints) : action.points}
               </span>
             </motion.div>
           );
