@@ -300,7 +300,7 @@ export default function RemediationPanel({ videoId, currentScore, onRemediationC
             className="px-5 py-3"
           >
             <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
-              <span>Processing fixes...</span>
+              <span>{progress < 50 ? 'Transcribing audio with Whisper...' : progress < 95 ? 'Rendering captions + Braille panel (this takes 5-8 min)...' : 'Finalizing...'}</span>
               <span className="font-mono">{Math.round(progress)}%</span>
             </div>
             <div className="h-1.5 overflow-hidden rounded-full bg-slate-800">
@@ -310,6 +310,11 @@ export default function RemediationPanel({ videoId, currentScore, onRemediationC
                 className="h-full rounded-full bg-teal-500"
               />
             </div>
+            {progress >= 50 && progress < 95 && (
+              <p className="mt-2 text-[11px] text-slate-400">
+                Each frame is being rendered with burned captions and a Braille translation side panel. Please wait — this is real AI-powered video processing, not a simulation.
+              </p>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
