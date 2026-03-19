@@ -50,6 +50,7 @@ const remediationActions = [
     icon: MessageSquare,
     points: 10,
     color: 'orange',
+    comingSoon: true,
   },
   {
     id: 'add_pause_points',
@@ -58,6 +59,7 @@ const remediationActions = [
     icon: PauseCircle,
     points: 5,
     color: 'yellow',
+    comingSoon: true,
   },
 ];
 
@@ -70,7 +72,7 @@ const colorClasses: Record<string, { bg: string; ring: string; text: string }> =
 };
 
 export default function RemediationPanel({ videoId, currentScore, onRemediationComplete }: RemediationPanelProps) {
-  const [selected, setSelected] = useState<Set<string>>(new Set(remediationActions.map((a) => a.id)));
+  const [selected, setSelected] = useState<Set<string>>(new Set(remediationActions.filter((a) => !a.comingSoon).map((a) => a.id)));
   const [processing, setProcessing] = useState(false);
   const [currentAction, setCurrentAction] = useState('');
   const [completedActions, setCompletedActions] = useState<Set<string>>(new Set());
@@ -84,6 +86,8 @@ export default function RemediationPanel({ videoId, currentScore, onRemediationC
 
   const toggleAction = (id: string) => {
     if (processing) return;
+    const action = remediationActions.find((a) => a.id === id);
+    if (action?.comingSoon) return;
     setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -92,12 +96,14 @@ export default function RemediationPanel({ videoId, currentScore, onRemediationC
     });
   };
 
+  const activeActions = remediationActions.filter((a) => !a.comingSoon);
+
   const selectAll = () => {
     if (processing) return;
-    if (selected.size === remediationActions.length) {
+    if (selected.size === activeActions.length) {
       setSelected(new Set());
     } else {
-      setSelected(new Set(remediationActions.map((a) => a.id)));
+      setSelected(new Set(activeActions.map((a) => a.id)));
     }
   };
 
@@ -220,12 +226,14 @@ export default function RemediationPanel({ videoId, currentScore, onRemediationC
           const isSelected = selected.has(action.id);
           const isCompleted = completedActions.has(action.id);
           const isCurrent = processing && currentAction === action.id && !isCompleted;
+          const isComingSoon = action.comingSoon;
 
           return (
             <motion.div
               key={action.id}
               layout
               className={`flex items-center gap-3 px-5 py-3.5 transition-colors ${
+                isComingSoon ? 'opacity-50 cursor-not-allowed' :
                 processing ? '' : 'cursor-pointer hover:bg-slate-800/30'
               } ${isCurrent ? 'bg-slate-800/40' : ''}`}
               onClick={() => toggleAction(action.id)}
@@ -262,16 +270,22 @@ export default function RemediationPanel({ videoId, currentScore, onRemediationC
                 <p className="text-xs text-slate-400">{action.description}</p>
               </div>
 
-              {/* Points badge — scale to cap */}
-              <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-mono font-medium ${
-                isCompleted
-                  ? 'bg-green-500/10 text-green-400'
-                  : isSelected
-                  ? `${colors.bg} ${colors.text}`
-                  : 'text-slate-400'
-              }`}>
-                +{rawPoints > 0 && isSelected ? Math.round((action.points / rawPoints) * totalPoints) : action.points}
-              </span>
+              {/* Points badge or Coming Soon */}
+              {isComingSoon ? (
+                <span className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium bg-slate-800 text-slate-400">
+                  Coming Soon
+                </span>
+              ) : (
+                <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-mono font-medium ${
+                  isCompleted
+                    ? 'bg-green-500/10 text-green-400'
+                    : isSelected
+                    ? `${colors.bg} ${colors.text}`
+                    : 'text-slate-400'
+                }`}>
+                  +{rawPoints > 0 && isSelected ? Math.round((action.points / rawPoints) * totalPoints) : action.points}
+                </span>
+              )}
             </motion.div>
           );
         })}
