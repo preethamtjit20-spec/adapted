@@ -4,7 +4,7 @@ import logging
 import uuid
 from pathlib import Path
 
-from fastapi import APIRouter, File, HTTPException, UploadFile
+from fastapi import APIRouter, File, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse
 
 from app.config import settings
@@ -401,8 +401,8 @@ async def get_report(video_id: str):
 
 
 @router.get("/video/{video_id}/{video_type}")
-async def serve_video(video_id: str, video_type: str):
-    """Serve original or remediated video file."""
+async def serve_video(video_id: str, video_type: str, request: Request):
+    """Serve original or remediated video file with Range request support."""
     video = _get_video(video_id)
 
     if video_type == "original":
@@ -417,7 +417,42 @@ async def serve_video(video_id: str, video_type: str):
     if not Path(path).exists():
         raise HTTPException(status_code=404, detail="Video file not found on disk")
 
-    return FileResponse(path, media_type="video/mp4")
+    file_path = Path(path)
+    file_size = file_path.stat().st_size
+
+    # Handle Range requests for video streaming
+    range_header = request.headers.get("range")
+    if range_header:
+        from starlette.responses import StreamingResponse
+        range_val = range_header.strip().split("=")[1]
+        start, end = range_val.split("-")
+        start = int(start)
+        end = int(end) if end else file_size - 1
+        content_length = end - start + 1
+
+        def iter_file():
+            with open(file_path, "rb") as f:
+                f.seek(start)
+                remaining = content_length
+                while remaining > 0:
+                    chunk = f.read(min(8192, remaining))
+                    if not chunk:
+                        break
+                    remaining -= len(chunk)
+                    yield chunk
+
+        return StreamingResponse(
+            iter_file(),
+            status_code=206,
+            media_type="video/mp4",
+            headers={
+                "Content-Range": f"bytes {start}-{end}/{file_size}",
+                "Accept-Ranges": "bytes",
+                "Content-Length": str(content_length),
+            },
+        )
+
+    return FileResponse(path, media_type="video/mp4", headers={"Accept-Ranges": "bytes"})
 
 
 @router.get("/status/{video_id}", response_model=VideoStatus)
