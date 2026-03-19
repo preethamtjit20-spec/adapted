@@ -4,54 +4,55 @@
 
 **800 million+ people worldwide have disabilities. 90% of educational videos lack basic accessibility features. AdaptEd fixes that.**
 
-AdaptEd is an autonomous AI agent that analyzes educational videos for accessibility gaps and automatically remediates them — generating captions, enhancing visual contrast, normalizing audio, and more — powered by DigitalOcean Gradient™ AI.
+AdaptEd is an autonomous AI agent that analyzes educational videos for accessibility gaps and automatically remediates them — generating captions, translating to Braille, enhancing visual contrast, normalizing audio, and producing WCAG compliance reports — powered by DigitalOcean Gradient™ AI.
 
 ## What It Does
 
 1. **Upload** any educational video (lecture, tutorial, course)
-2. **AI Analysis** — Gemini 3.0 Pro analyzes the full video for accessibility issues referencing WCAG 2.1 guidelines
-3. **Accessibility Score** — Get a 0-100 score with detailed findings (critical/major/minor)
+2. **AI Analysis** — Gemini analyzes the full video for accessibility issues, while the DigitalOcean Gradient AI Agent (Llama 3.3 70B) performs transcript-level WCAG reasoning
+3. **Accessibility Score** — Get a 0-100 score with detailed findings (critical/major/minor) mapped to WCAG 2.1 criteria
 4. **Auto-Remediate** — One-click fixes:
-   - AI-generated captions via Whisper (running on DigitalOcean Gradient GPU)
+   - AI-generated captions via Whisper speech-to-text
+   - **Braille translation** using liblouis (UEB Grade 2) — rendered as a side panel in the video
    - Visual contrast enhancement
-   - Audio normalization
-   - Content alt-descriptions
-   - Pause point recommendations
-5. **Compliance Report** — Download a PDF accessibility report with WCAG 2.1 checklist
+   - Audio normalization to -16 LUFS
+5. **Compliance Report** — Download a PDF accessibility report with WCAG 2.1 checklist and before/after score comparison
 
 ## Tech Stack
 
 | Layer | Technology | Infrastructure |
 |-------|-----------|----------------|
-| AI Video Analysis | Gemini 3.0 Pro | Google AI |
-| Speech-to-Text | OpenAI Whisper | **DigitalOcean Gradient™ GPU** |
-| Video Processing | FFmpeg + OpenCV | **DigitalOcean Droplet** |
-| Backend | FastAPI (Python) | **DigitalOcean App Platform** |
-| Frontend | React + TypeScript + Tailwind | **DigitalOcean App Platform** |
-| Storage | S3-compatible | **DigitalOcean Spaces** |
-| Containerization | Docker | **DigitalOcean Container Registry** |
+| Video Analysis | Gemini 2.5 Flash | Google AI |
+| Transcript WCAG Analysis | Llama 3.3 Instruct (70B) | **DigitalOcean Gradient™ AI Agent** |
+| Speech-to-Text | OpenAI Whisper | **DigitalOcean Droplet** |
+| Braille Translation | liblouis (UEB Grade 2) | **DigitalOcean Droplet** |
+| Video Processing | FFmpeg + OpenCV + Pillow | **DigitalOcean Droplet** |
+| Backend | FastAPI (Python) | **DigitalOcean Droplet** |
+| Frontend | React + TypeScript + Tailwind | **DigitalOcean Droplet** (nginx) |
+| Containerization | Docker | Docker Compose |
 
 ## DigitalOcean Gradient™ AI Usage
 
-AdaptEd leverages DigitalOcean Gradient™ for GPU-accelerated AI inference:
+AdaptEd uses a **multi-model architecture** leveraging DigitalOcean Gradient™ AI:
 
-- **Whisper Speech-to-Text**: Runs on Gradient GPU instances for fast, accurate transcription of educational content
-- **Model Serving**: Whisper model deployed as a GPU-backed service via Gradient
-- **Seamless Integration**: Gradient GPU workflows connect directly with App Platform (backend), Spaces (storage), and Droplets (processing)
+- **Gradient AI Agent** (Llama 3.3 Instruct 70B): Performs transcript-level WCAG 2.1 accessibility reasoning — analyzes speech patterns, pacing, content descriptions, and navigation structure. Findings are merged with Gemini's video-level analysis for comprehensive results.
+- **DigitalOcean Droplet** (s-2vcpu-4gb): Hosts the FastAPI backend, Whisper inference, FFmpeg video processing, and nginx serving the React frontend.
+- **Multi-model pipeline**: Gemini handles native video understanding (visual content), Gradient Agent handles transcript reasoning (speech/text content), Whisper handles transcription — each model doing what it's best at.
 
 ## Quick Start
 
 ### Prerequisites
-- Python 3.11+
+- Python 3.10+
 - Node.js 18+
-- FFmpeg installed
+- FFmpeg installed (`brew install ffmpeg` or `apt install ffmpeg`)
+- liblouis installed (`brew install liblouis` or `apt install liblouis-bin`)
 - Gemini API key
 
 ### Backend
 ```bash
 cd backend
 cp .env.example .env
-# Fill in GEMINI_API_KEY in .env
+# Fill in GEMINI_API_KEY and GRADIENT_AGENT_KEY in .env
 pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
@@ -82,8 +83,10 @@ adapted/
 │   │   └── video.py   # API endpoints
 │   ├── core/
 │   │   ├── gemini_analyzer.py      # Gemini video analysis
+│   │   ├── gradient_agent.py       # DO Gradient AI Agent integration
 │   │   ├── whisper_transcriber.py  # Whisper STT
-│   │   ├── video_enhancer.py       # FFmpeg processing
+│   │   ├── braille_translator.py   # liblouis Braille translation
+│   │   ├── video_enhancer.py       # FFmpeg + Pillow processing
 │   │   └── report_generator.py     # PDF reports
 │   ├── Dockerfile
 │   └── requirements.txt
@@ -108,6 +111,15 @@ AdaptEd evaluates against WCAG 2.1 guidelines:
 - **1.4.7** Low or No Background Audio
 - **2.2.2** Pause, Stop, Hide
 - **2.3.1** Three Flashes or Below Threshold
+
+## Design System
+
+AdaptEd's UI is built with a WCAG-compliant color system:
+- Brand seed: Teal (#0D9488)
+- Primary text: 15.4:1 contrast ratio (AAA)
+- Secondary text: 7.0:1 contrast ratio (AA)
+- Accent text: 11.1:1 contrast ratio (AAA)
+- No purple/indigo gradients — an accessibility tool that practices what it preaches
 
 ## License
 
