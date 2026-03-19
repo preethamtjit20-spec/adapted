@@ -179,6 +179,50 @@ async def analyze_video(video_id: str):
         # Fix video_id in result
         result.video_id = video_id
 
+        # Also try Gradient AI Agent for transcript-level analysis (non-blocking)
+        try:
+            from core.gradient_agent import analyze_transcript_with_gradient
+            # If transcription exists, use it; otherwise skip Gradient
+            if video.get("transcription") and video["transcription"].get("segments"):
+                gradient_findings = await analyze_transcript_with_gradient(
+                    video["transcription"]["segments"]
+                )
+                # Merge unique findings from Gradient
+                existing_types = {f.type for f in result.findings}
+                for gf in gradient_findings:
+                    if gf.get("type") and gf["type"] not in existing_types:
+                        try:
+                            from app.models import Severity
+                            severity = gf.get("severity", "minor").lower()
+                            if severity not in ("critical", "major", "minor"):
+                                severity = "minor"
+                            result.findings.append(
+                                AccessibilityFinding(
+                                    type=gf["type"],
+                                    severity=Severity(severity),
+                                    description=gf.get("description", ""),
+                                    timestamp_start=gf.get("timestamp_start"),
+                                    timestamp_end=gf.get("timestamp_end"),
+                                    wcag_criterion=gf.get("wcag_criterion"),
+                                    recommendation=gf.get("recommendation", ""),
+                                )
+                            )
+                        except Exception:
+                            pass
+                # Recalculate score with merged findings
+                from app.models import Severity
+                critical = sum(1 for f in result.findings if f.severity == Severity.CRITICAL)
+                major = sum(1 for f in result.findings if f.severity == Severity.MAJOR)
+                minor = sum(1 for f in result.findings if f.severity == Severity.MINOR)
+                result.score_before = max(0, 100 - (critical * 15) - (major * 10) - (minor * 5))
+                result.total_issues = len(result.findings)
+                result.critical_count = critical
+                result.major_count = major
+                result.minor_count = minor
+                logger.info("Merged %d Gradient findings into analysis", len(gradient_findings))
+        except Exception as e:
+            logger.warning("Gradient agent integration skipped: %s", e)
+
         video["analysis"] = result
         video["status"] = ProcessingStatus.ANALYZED
         return result

@@ -20,6 +20,10 @@ class Settings(BaseSettings):
     # Whisper
     WHISPER_MODEL: str = "base"
 
+    # Gradient AI Agent
+    GRADIENT_AGENT_ENDPOINT: str = ""
+    GRADIENT_AGENT_KEY: str = ""
+
     # Server
     HOST: str = "0.0.0.0"
     PORT: int = 8000
